@@ -5,6 +5,8 @@ import aioredis
 from fastapi import FastAPI, Request, BackgroundTasks
 from app.core.redisbot import rdsopr
 import app.schemas as schemas
+import app.schemas_db as sch_db
+from app.db import crud_goods
 
 import app.incm_processing as incm_proc
 
@@ -13,6 +15,11 @@ from app.db.core_db import database
 from app.bot_logic.switcher import switcher_handle
 
 app = FastAPI()
+
+
+@app.get("/get_list_goods")
+async def get_list_goods():  # response_model=sch_db.ReportGoods
+	return await crud_goods.get_list_of_goods()
 
 
 @app.post(settings.TG_WEBHOOK_MAIN)
