@@ -1,1 +1,1 @@
-from .report import Report, ReportGoods, Goods
+from .report import *

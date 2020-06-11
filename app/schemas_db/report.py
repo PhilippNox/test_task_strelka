@@ -22,3 +22,6 @@ class Report(ReportBase):
 class ReportGoods(ReportBase):
 	data: List[Goods]
 
+
+class ReportLevel(ReportBase):
+	data: float

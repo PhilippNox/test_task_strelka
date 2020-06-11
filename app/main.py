@@ -22,6 +22,11 @@ async def get_list_goods():  # response_model=sch_db.ReportGoods
 	return await crud_goods.get_list_of_goods()
 
 
+@app.get("/get_level")  # TODO env people env floors db account
+async def get_level():  # response_model=sch_db.ReportLevel
+	return sch_db.ReportLevel(ok=True, code=0, msg="Current level", data=0.1)
+
+
 @app.post(settings.TG_WEBHOOK_MAIN)
 async def telegram_income(request: Request, background_tasks: BackgroundTasks):
 	incm = await incm_proc.parser_incm(request)
