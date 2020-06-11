@@ -25,3 +25,7 @@ class ReportGoods(ReportBase):
 
 class ReportLevel(ReportBase):
 	data: float
+
+
+class ReportBalance(ReportBase):
+	data: float

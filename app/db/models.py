@@ -13,13 +13,22 @@ user = Table(
 )
 
 goods = Table(
-    'goods',
+	'goods',
 	metadata,
-    Column('id', Integer, primary_key=True),
+	Column('id', Integer, primary_key=True),
 	Column('created_at', DateTime),
 	Column('updated_at', DateTime),
 	Column('name', String(255), nullable=False),
-    Column('barcode', Integer),  # EAN-8
-    Column('quantity', Integer),
-    Column('price', Numeric),
+	Column('barcode', Integer),  # EAN-8
+	Column('quantity', Integer),
+	Column('price', Numeric),
+)
+
+account = Table(
+	'account',
+	metadata,
+	Column('id', Integer, primary_key=True),
+	Column('created_at', DateTime),
+	Column('balance', Numeric),
+	Column('deal_uuid', UUID, ForeignKey("deals.uuid"), nullable=True, unique=True),
 )
