@@ -12,6 +12,8 @@ class Settings(BaseSettings):
 	DB_DATABASE:		str
 	BOT_NAME:			str
 	DEF_USER:			str
+	HUMAN_NUM:			int
+	FLOORS_NUM:			int
 
 	class Config:
 		env_file = '.env'
