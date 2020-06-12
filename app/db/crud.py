@@ -19,3 +19,13 @@ async def exist_user(chat_id: str) -> sch_db.Report:
 async def create_user(chat_id: str):
 	query = user.insert().values(chat_id=chat_id)
 	return await database.execute(query)
+
+
+async def get_or_create_user(chat_id: str):
+	query = sa.select([user.c.id]) \
+		.where(user.c.chat_id == chat_id)
+	out_id = await database.execute(query=query)
+	if not out_id:
+		query = user.insert().values(chat_id=chat_id)
+		out_id = await database.execute(query)
+	return out_id

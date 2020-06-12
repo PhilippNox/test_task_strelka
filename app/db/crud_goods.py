@@ -18,10 +18,10 @@ async def create_goods(name: str, quantity: int, price: float, barcode: Optional
 		rlt = await database.execute(query)
 		return sch_db.Report(ok=True, code=0, msg="Goods created", data=rlt)
 	except UniqueViolationError as e:
-		return sch_db.Report(ok=False, code=2, msg="Can't create a duplicate of goods", data=e.detail)
+		return sch_db.Report(ok=False, code=2, msg="Can't create a duplicate of goods")
 	except Exception as e:
 		logger.warning(f"create_goods: Exception: {e}")
-		return sch_db.Report(ok=False, code=1, msg="Unknown error", data=e)
+		return sch_db.Report(ok=False, code=1, msg="Unknown error")
 
 
 async def get_list_of_goods() -> sch_db.ReportGoods:

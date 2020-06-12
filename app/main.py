@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request, BackgroundTasks
 from app.core.redisbot import rdsopr
 import app.schemas as schemas
 import app.schemas_db as sch_db
+import app.schemas_income as sch_in
 from app.db import crud_goods, crud_account
 
 import app.incm_processing as incm_proc
@@ -31,6 +32,14 @@ async def get_level():  # response_model=sch_db.ReportLevel
 		return sch_db.ReportLevel(ok=False, code=2, msg="Balance are not available")
 	out_data = round(balance.data / settings.HUMAN_NUM * abs(settings.FLOORS_NUM) * 0.01, 3)
 	return sch_db.ReportLevel(ok=True, code=0, msg="Current level", data=out_data)
+
+
+# curl -i -X POST -d '{"msg":"hello"}' http://localhost:8000/buy -w '\n'
+# curl -i -X POST -d '{"id":42, "items": [{"barcode":420, "quantity": 1}]}' http://localhost:8000/buy -w '\n'
+@app.post("/buy")
+async def buy(buy_post: sch_in.BuyRequest):
+    return buy_post
+
 
 
 @app.post(settings.TG_WEBHOOK_MAIN)

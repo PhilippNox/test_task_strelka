@@ -5,6 +5,7 @@ from fastapi.logger import logger
 from asyncpg.exceptions import UniqueViolationError
 from typing import Optional
 import sqlalchemy as sa
+from decimal import Decimal
 
 
 async def create_account(current_balance: float, deal_uuid: Optional[str] = None):
@@ -19,14 +20,16 @@ async def create_account(current_balance: float, deal_uuid: Optional[str] = None
 		return sch_db.Report(ok=False, code=2, msg="One deal can have only one row", data=e.detail)
 	except Exception as e:  # TODO ForeignKeyViolationError
 		logger.warning(f"create_account: Exception: {e}")
-		return sch_db.Report(ok=False, code=1, msg="Unknown error", data=e)
+		return sch_db.Report(ok=False, code=1, msg="Unknown error")
 
 
 async def get_balance():
 	try:
 		query = sa.select([account.c.balance]).order_by(account.c.id.desc()).limit(1)
-		rlt = await database.fetch_one(query)
-		return sch_db.ReportBalance(ok=True, code=0, msg="Current balance", data=rlt['balance'])
+		rlt = await database.execute(query)
+		if not rlt:
+			rlt = Decimal(0.0)
+		return sch_db.ReportBalance(ok=True, code=0, msg="Current balance", data=rlt)
 	except Exception as e:
 		logger.warning(f"get_balance: Exception: {e}")
-		return sch_db.ReportBalance(ok=False, code=1, msg="Unknown error", data=e)
+		return sch_db.ReportBalance(ok=False, code=1, msg="Unknown error")

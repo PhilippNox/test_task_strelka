@@ -1,5 +1,6 @@
 from typing import Optional, Any, List
 from pydantic import BaseModel
+import app.schemas_income as sch_in
 
 
 class Goods(BaseModel):
@@ -29,3 +30,7 @@ class ReportLevel(ReportBase):
 
 class ReportBalance(ReportBase):
 	data: float
+
+
+class DealItemDB(sch_in.DealItem):
+	db_id: int
