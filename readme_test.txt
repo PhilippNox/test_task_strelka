@@ -1,19 +1,9 @@
-# Core
-export DYLD_FALLBACK_LIBRARY_PATH=$HOME/anaconda/lib/:$DYLD_FALLBACK_LIBRARY_PATH
-uvicorn app.main:app --reload
-curl -i -X POST -d '{"msg":"hello"}' http://localhost:8000/echo -w '\n'
 
 
-# SQL / MIGRATIONS
-alembic revision -m "create account table"
-    # https://stackoverflow.com/a/30726895/9016251
-export DYLD_FALLBACK_LIBRARY_PATH=$HOME/anaconda/lib/:$DYLD_FALLBACK_LIBRARY_PATH
-alembic upgrade head
-
-
-# MAIN
-./run_local_bot.sh
-
-
-# For test sql requests
-./test_db.py
+# Testing /buy
+run:
+	python test_db.py with await test_crud_goods()
+curl -i -X POST -d '{"msg":"hello"}' http://localhost:8000/buy -w '\n'
+curl -i -X POST -d '{"id":42, "items": [{"barcode":420, "quantity": 1}]}' http://localhost:8000/buy -w '\n'
+curl -i -X POST -d '{"id":42, "items": [{"barcode":420, "quantity": 1000}]}' http://localhost:8000/buy -w '\n'
+curl -i -X POST -d '{"id":42, "items": [{"barcode":421, "quantity": 1}]}' http://localhost:8000/buy -w '\n'

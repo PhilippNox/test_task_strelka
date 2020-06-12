@@ -7,7 +7,7 @@ from app.core.redisbot import rdsopr
 import app.schemas as schemas
 import app.schemas_db as sch_db
 import app.schemas_income as sch_in
-from app.db import crud_goods, crud_account
+from app.db import crud_goods, crud_account, crud_deal_out
 
 import app.incm_processing as incm_proc
 
@@ -34,12 +34,9 @@ async def get_level():  # response_model=sch_db.ReportLevel
 	return sch_db.ReportLevel(ok=True, code=0, msg="Current level", data=out_data)
 
 
-# curl -i -X POST -d '{"msg":"hello"}' http://localhost:8000/buy -w '\n'
-# curl -i -X POST -d '{"id":42, "items": [{"barcode":420, "quantity": 1}]}' http://localhost:8000/buy -w '\n'
 @app.post("/buy")
 async def buy(buy_post: sch_in.BuyRequest):
-    return buy_post
-
+	return await crud_deal_out.deal_goods_out(buy_post)
 
 
 @app.post(settings.TG_WEBHOOK_MAIN)
