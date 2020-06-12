@@ -8,12 +8,12 @@ from fastapi.logger import logger
 
 import app.schemas_db as sch_db
 import app.db.crud as crud
-import app.db.crud_account as crud_account
 import uuid
-from typing import List
 from decimal import Decimal
 from pydantic import BaseModel
-from typing import Optional, Any
+from typing import Optional, Any, List
+import asyncio
+from sqlalchemy import text
 
 errors = {
 	'err_except': {'code': 1, 'msg': 'Unknown error'},
@@ -23,101 +23,83 @@ errors = {
 }
 
 
-class LocalReport(BaseModel):
-	ok: 		bool
-	error_key: 	Optional[str] = None
-	data: 		Optional[Any] = None
-
-
-async def deal_goods_out(income: sch_in.BuyRequest):
-	try:
-		rlt = await check_goods_exist(income.items)  # TODO add typing
-		if not rlt.ok:
-			return sch_db.Report(ok=False, **errors.get('err_no_goods'))  # TODO barcode as data
-		units, amount = rlt.data[0], rlt.data[1]
-
-		contractor = await crud.get_or_create_user(income.id)
-
-		rlt = await goods_out_trans(contractor, units, amount)
-		if not rlt.ok:
-			print(rlt.error_key)
-			return sch_db.Report(ok=False, **errors.get(rlt.error_key))  # TODO quantity info
-		return sch_db.Report(ok=True, code=0, msg="deal out done", data=rlt.data)
-
-	except Exception as e:
-		logger.warning(f"deal_goods_out: Exception: {e}")
-		return sch_db.Report(ok=False, **errors.get('err_except'))
-
-
-async def check_goods_exist(to_check: List[sch_in.DealItem]):
-	units = dict()
-	amount = Decimal(0.0)
-	for elem in to_check:
-		query = sa.select([goods.c.id, goods.c.price]) \
-			.where(goods.c.barcode == elem.barcode)
-		rlt = await database.fetch_one(query=query)
-		if not rlt:
-			return LocalReport(ok=False, data=elem.barcode)
-		unit_id, unit_price = rlt['id'], rlt['price']  # TODO check price exist
-		units[unit_id] = units.get(unit_id, 0) + elem.quantity
-		amount += elem.quantity * unit_price
-	return LocalReport(ok=True, data=(units, amount))
-
-
-async def goods_out_trans(contractor, units, amount):
+async def deal_out(income: sch_in.BuyRequest):
+	items = income.items
 	transaction = await database.transaction()
 	try:
-		rlt = await update_quantity_goods(units)
-		if not rlt:
+		rlts = await list_of_updates(items)
+		if None in rlts:
 			await transaction.rollback()
-			return LocalReport(ok=False, error_key='err_quantity')
+			return sch_db.Report(ok=False, code=2, msg=" ", data=get_unknow_barcode(rlts, items))
 
-		deal_uuid = await create_deal(contractor, amount)
-		await update_countbook(units, deal_uuid)
-		await update_account(amount, deal_uuid)
-		await transaction.commit()
-		return LocalReport(ok=True, data=deal_uuid)
+		quant = [elem['quantity'] for elem in rlts]
+		if any(elem < 0 for elem in quant):
+			await transaction.rollback()
+			return sch_db.Report(ok=False, code=3, msg=" ", data=get_negavite_quant(quant, items))
+
+		deal_uuid = await make_deal_out(income, rlts)
 	except Exception as e:
 		await transaction.rollback()
-		logger.warning(f"goods_out_trans: Exception: {e}")
-		return LocalReport(ok=False, error_key='err_in_tran')
+		logger.warning(f"deal_out: Exception: {e}")
+		return sch_db.Report(ok=False, code=1, msg=" ")
+	else:
+		await transaction.commit()
+	return sch_db.Report(ok=True, code=0, msg=" ", data=deal_uuid)
 
 
-async def update_quantity_goods(units):
-	for goods_id, quantity in units.items():
+async def list_of_updates(items: List[sch_in.DealItem]):
+	tasks = []
+	for elem in items:
 		stmt = goods.update(). \
-			where(goods.c.id == goods_id). \
-			values(quantity=goods.c.quantity - quantity). \
-			returning(goods.c.quantity)
-		rlt = await database.execute(stmt)
-		if rlt < 0:
-			return False
-	return True
+			where(goods.c.barcode == elem.barcode). \
+			values(quantity=goods.c.quantity - elem.quantity). \
+			returning(goods.c.quantity, goods.c.price, goods.c.id)
+		tasks.append(database.fetch_one(stmt))
+	return await asyncio.gather(*tasks)
 
 
-async def create_deal(contractor, amount):
+def get_amount(items, rlts):
+	out = Decimal(0.0)
+	for item, rlt in zip(items, rlts):
+		out += item.quantity * rlt['price']
+	return out
+
+
+async def make_deal_out(income, rlts):
+	amount = get_amount(income.items, rlts)
+	contractor = await crud.get_or_create_user(income.id)
 	deal_uuid = uuid.uuid4()
-	query = deals.insert().values(
-		uuid=deal_uuid,
-		contractor=contractor,
-		state='goods_out',
-		amount=amount,
-	)
-	await database.execute(query)
+	deal_id = await create_deal(deal_uuid, contractor, amount)
+	await update_countbook(income.items, rlts, deal_id)
 	return deal_uuid
 
 
-async def update_countbook(units, deal_uuid):
-	for goods_id, quantity in units.items():
+async def create_deal(deal_uuid, contractor, amount):
+	stmt = text(
+		f"INSERT INTO deals (uuid, contractor, amount, balance) VALUES ("
+		f"'{deal_uuid}', "
+		f"'{contractor}', "
+		f"'{amount}', "
+		f"(SELECT deals.balance FROM deals ORDER BY deals.id DESC LIMIT 1) + {amount})"
+		f"RETURNING deals.id")
+	return await database.execute(stmt)
+
+
+async def update_countbook(items, rlts, deal_id):
+	tasks = []
+	for item, elem in zip(items, rlts):
 		query = countbook.insert().values(
-			goods_id=goods_id,
-			quantity=quantity,
-			deal_uuid=deal_uuid,
+			goods_id=elem['id'],
+			quantity=item.quantity,
+			deal_id=deal_id,
 		)
-		await database.execute(query)
+		tasks.append(database.execute(query))
+	return await asyncio.gather(*tasks)
 
 
-async def update_account(amount, deal_uuid):
-	balance = await crud_account.get_balance()
-	if balance.ok:
-		await crud_account.create_account(Decimal(balance.data) + amount, deal_uuid)
+def get_unknow_barcode(rlts, items):
+	return [x[1].barcode for x in zip(rlts, items) if x[0] is None]
+
+
+def get_negavite_quant(quant, items):
+	return [(x[1].barcode, x[0]) for x in zip(quant, items) if x[0] < 0]

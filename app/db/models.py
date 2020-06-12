@@ -24,23 +24,15 @@ goods = Table(
 	Column('price', Numeric),
 )
 
-account = Table(
-	'account',
-	metadata,
-	Column('id', Integer, primary_key=True),
-	Column('created_at', DateTime),
-	Column('balance', Numeric),
-	Column('deal_uuid', UUID, ForeignKey("deals.uuid"), nullable=True, unique=True),
-)
-
 deals = Table(
 	'deals',
 	metadata,
-	Column('uuid', UUID, primary_key=True),
+	Column('id', Integer, primary_key=True),
+	Column('uuid', UUID),
 	Column('created_at', DateTime),
 	Column('contractor', Integer, ForeignKey("users.id")),
-	Column('state', ENUM('goods_out', 'goods_in')),
 	Column('amount', Numeric),
+	Column('balance', Numeric),
 )
 
 countbook = Table(
@@ -50,5 +42,5 @@ countbook = Table(
 	Column('created_at', DateTime),
 	Column('goods_id', Integer, ForeignKey("goods.id")),
 	Column('quantity', Integer),
-	Column('deal_uuid', UUID, ForeignKey("deals.uuid")),
+	Column('deal_id', Integer, ForeignKey("deals.id")),
 )

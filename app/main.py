@@ -7,7 +7,7 @@ from app.core.redisbot import rdsopr
 import app.schemas as schemas
 import app.schemas_db as sch_db
 import app.schemas_income as sch_in
-from app.db import crud_goods, crud_account, crud_deal_out
+from app.db import crud_goods, crud_deal_out, crud_deal
 
 import app.incm_processing as incm_proc
 
@@ -27,7 +27,7 @@ async def get_list_goods():  # response_model=sch_db.ReportGoods
 async def get_level():  # response_model=sch_db.ReportLevel
 	if settings.HUMAN_NUM < 1:
 		return sch_db.ReportLevel(ok=False, code=1, msg="Number of humans less than 1")
-	balance = await crud_account.get_balance()
+	balance = await crud_deal.get_balance()
 	if not balance.ok:
 		return sch_db.ReportLevel(ok=False, code=2, msg="Balance are not available")
 	out_data = round(balance.data / settings.HUMAN_NUM * abs(settings.FLOORS_NUM) * 0.01, 3)
@@ -36,7 +36,7 @@ async def get_level():  # response_model=sch_db.ReportLevel
 
 @app.post("/buy")
 async def buy(buy_post: sch_in.BuyRequest):
-	return await crud_deal_out.deal_goods_out(buy_post)
+	return await crud_deal_out.deal_out(buy_post)
 
 
 @app.post(settings.TG_WEBHOOK_MAIN)
@@ -60,6 +60,7 @@ async def startup_event():
 	rds = await aioredis.create_redis_pool('redis://localhost', encoding='utf-8')
 	await rdsopr.full_set_up(rds)
 	await database.connect()
+	await crud_deal.initial_deal()
 
 
 @app.on_event("shutdown")
