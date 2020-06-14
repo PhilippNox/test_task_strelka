@@ -7,7 +7,7 @@ class Goods(BaseModel):
 	name: str
 	quantity: int
 	price: float
-	barcode: Optional[int] = None
+	barcode: int
 
 
 class ReportBase(BaseModel):

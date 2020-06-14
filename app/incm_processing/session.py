@@ -2,7 +2,7 @@ import app.schemas as schemas
 from fastapi.logger import logger
 from app.core.redisbot import rdsopr
 from app.bot_logic.state_holder import state_holder
-import app.db.crud as crud
+import app.db.crud_user as crud_us
 
 
 def get_sess(load):
@@ -22,9 +22,9 @@ async def load_session(chat_id) -> schemas.SessBase:
 		logger.debug(f"load_session= 📲 - from redis")
 		return out
 
-	user_db = await crud.exist_user(chat_id)
+	user_db = await crud_us.exist_user(chat_id)
 	if not user_db.ok:
-		await crud.create_user(chat_id)
+		await crud_us.create_user(chat_id)
 		logger.debug(f"load_session= 🆕 - create new user")
 	else:
 		logger.debug(f"load_session= ♻️  - just create new redis session")

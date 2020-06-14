@@ -27,6 +27,12 @@ class TgDriver:
 			return f'{self.pre_mem}{chat_id}'
 		return chat_id
 
+	async def auto_clear_but(self, incm: schemas.IncmCallback):
+		resp = await self.clear_but(incm.chat_id, incm.message_from)
+		if resp == 200:
+			await rdsopr.raw().hdel(self.mem(incm.chat_id), 'last_but_msg')
+		return resp
+
 	async def send_msg(self, chat_id: str, text: str, buttons=None):
 		async with aiohttp.ClientSession() as client:
 			if not buttons:
@@ -46,6 +52,11 @@ class TgDriver:
 					body['result']['message_id']
 				)
 			return resp.status
+
+	async def resend_msg(self, chat_id: str, sess: schemas.SessBase, text: str, buttons=None):
+		if sess.last_but_msg:
+			await self.delete_msg(chat_id, sess.last_but_msg)
+		return await self.send_msg(chat_id, text, buttons)
 
 	async def clear_but(self, chat_id: str, msg_id: int):
 		async with aiohttp.ClientSession() as client:

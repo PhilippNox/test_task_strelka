@@ -8,6 +8,8 @@ import app.schemas as schemas
 import app.schemas_db as sch_db
 import app.schemas_income as sch_in
 from app.db import crud_goods, crud_deal_out, crud_deal, crud_deal_in
+import app.api_logic as api
+from app.driver.tg import tg_driver
 
 import app.incm_processing as incm_proc
 
@@ -25,22 +27,16 @@ async def get_list_goods():  # response_model=sch_db.ReportGoods
 
 @app.get("/get_level")
 async def get_level():  # response_model=sch_db.ReportLevel
-	if settings.HUMAN_NUM < 1:
-		return sch_db.ReportLevel(ok=False, code=1, msg="Number of humans less than 1")
-	balance = await crud_deal.get_balance()
-	if not balance.ok:
-		return sch_db.ReportLevel(ok=False, code=2, msg="Balance are not available")
-	out_data = round(balance.data / settings.HUMAN_NUM * abs(settings.FLOORS_NUM) * 0.01, 3)
-	return sch_db.ReportLevel(ok=True, code=0, msg="Current level", data=out_data)
+	return await api.get_level()
 
 
 @app.post("/buy")
-async def buy(buy_post: sch_in.BuyRequest):
+async def buy(buy_post: sch_in.DealRequest):
 	return await crud_deal_out.deal_out(buy_post)
 
 
 @app.post("/sell")
-async def sell(sell_post: sch_in.BuyRequest):
+async def sell(sell_post: sch_in.DealRequest):
 	return await crud_deal_in.deal_in(sell_post)
 
 
@@ -54,6 +50,8 @@ async def telegram_income(request: Request, background_tasks: BackgroundTasks):
 	incm = await incm_proc.parser_incm(request)
 	if not incm:
 		return	 # TODO_maybe notify that useless msg, but how ? Need to parse chat_id
+	if isinstance(incm, schemas.IncmCallback):
+		await tg_driver.auto_clear_but(incm)
 	session = await incm_proc.load_session(incm.chat_id)
 	rqst = schemas.Rqst(
 		chat_id=incm.chat_id,

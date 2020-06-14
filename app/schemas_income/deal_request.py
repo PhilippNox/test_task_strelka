@@ -7,6 +7,6 @@ class DealItem(BaseModel):
 	quantity: 	int
 
 
-class BuyRequest(BaseModel):
+class DealRequest(BaseModel):
 	id:	str
 	items: List[DealItem]

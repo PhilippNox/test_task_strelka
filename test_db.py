@@ -1,6 +1,5 @@
 from app.db.core_db import database
 from app.db.models import user, goods, deals, countbook
-from app.db.crud import *
 import sqlalchemy as sa
 from sqlalchemy.sql.expression import join
 import app.schemas as schemas
@@ -31,7 +30,7 @@ async def test_crud_goods():
 async def test_crud_deal_out():
 	# await test_crud_goods()
 
-	test = sch_in.BuyRequest(
+	test = sch_in.DealRequest(
 		id=101,
 		items=[
 			sch_in.DealItem(

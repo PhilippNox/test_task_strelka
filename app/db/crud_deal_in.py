@@ -7,7 +7,7 @@ import app.db.crud_deal as crud_dl
 import uuid
 
 
-async def deal_in(income: sch_in.BuyRequest):
+async def deal_in(income: sch_in.DealRequest):
 	transaction = await database.transaction()
 	try:
 		rlts = await crud_dl.update_goods(income.items, deal_is_out=False)
