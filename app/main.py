@@ -7,7 +7,7 @@ from app.core.redisbot import rdsopr
 import app.schemas as schemas
 import app.schemas_db as sch_db
 import app.schemas_income as sch_in
-from app.db import crud_goods, crud_deal_out, crud_deal
+from app.db import crud_goods, crud_deal_out, crud_deal, crud_deal_in
 
 import app.incm_processing as incm_proc
 
@@ -37,6 +37,11 @@ async def get_level():  # response_model=sch_db.ReportLevel
 @app.post("/buy")
 async def buy(buy_post: sch_in.BuyRequest):
 	return await crud_deal_out.deal_out(buy_post)
+
+
+@app.post("/sell")
+async def sell(sell_post: sch_in.BuyRequest):
+	return await crud_deal_in.deal_in(sell_post)
 
 
 @app.post(settings.TG_WEBHOOK_MAIN)

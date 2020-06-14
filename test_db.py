@@ -48,18 +48,17 @@ async def test_crud_deal_out():
 			),
 		]
 	)
-	#print(await crud_deal_out.deal_goods_out(test))
 	print(await crud_deal_out.deal_out(test))
 
 
 async def run_test():
 	await database.connect()
 
-	# await test_crud_goods()
+	await test_crud_goods()
 	# await test_crud_deal_out()
 	# await test_crud_deal_out()
 	tasks = []
-	for _ in range(10):
+	for _ in range(0):
 		tasks.append(test_crud_deal_out())
 	await asyncio.gather(*tasks)
 

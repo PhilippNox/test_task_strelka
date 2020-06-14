@@ -7,3 +7,13 @@ curl -i -X POST -d '{"msg":"hello"}' http://localhost:8000/buy -w '\n'
 curl -i -X POST -d '{"id":42, "items": [{"barcode":420, "quantity": 1}]}' http://localhost:8000/buy -w '\n'
 curl -i -X POST -d '{"id":42, "items": [{"barcode":420, "quantity": 1000}]}' http://localhost:8000/buy -w '\n'
 curl -i -X POST -d '{"id":42, "items": [{"barcode":421, "quantity": 1}]}' http://localhost:8000/buy -w '\n'
+
+
+# Testing /sell
+curl -i -X POST -d '{"id":42, "items": [{"barcode":42, "quantity": 1}]}' http://localhost:8000/sell -w '\n'
+
+
+# Testinf /buy /sell
+curl -i -X POST -d '{"id":42, "items": [{"barcode":420, "quantity": 3}]}' http://localhost:8000/buy -w '\n'
+curl -i -X POST -d '{"id":42, "items": [{"barcode":42, "quantity": 1}]}' http://localhost:8000/sell -w '\n'
+curl -i -X POST -d '{"id":42, "items": [{"barcode":42, "quantity": 1}]}' http://localhost:8000/sell -w '\n'
