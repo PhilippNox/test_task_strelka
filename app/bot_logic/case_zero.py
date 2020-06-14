@@ -34,11 +34,8 @@ async def show_level(rqst: schemas.Rqst):
 	rlt = await api.get_level()
 	if rlt.ok:
 		msg_level = msg.curr_level.safe_substitute(level=rlt.data)
-	await tg_driver.send_msg(
-		rqst.chat_id,
-		msg_level,
-		menu_but()
-	)
+	await tg_driver.resend_msg(rqst.chat_id, rqst.sess, msg_level)
+	await tg_driver.send_msg(rqst.chat_id, msg.menu, menu_but())
 
 
 async def show_goods(rqst: schemas.Rqst):
@@ -54,16 +51,13 @@ async def show_goods(rqst: schemas.Rqst):
 				price=elem.price,
 			))
 		msg_goods = "\n".join(items_str)
-	await tg_driver.send_msg(
-		rqst.chat_id,
-		msg_goods,
-		menu_but()
-	)
+	await tg_driver.resend_msg(rqst.chat_id, rqst.sess, msg_goods)
+	await tg_driver.send_msg(rqst.chat_id, msg.menu, menu_but())
 
 
 async def handle_init(rqst: schemas.Rqst):
 	await rdsopr.set_state(rqst.chat_id, state_holder.zero)
-	await tg_driver.send_msg(rqst.chat_id, msg.menu)
+	await tg_driver.send_msg(rqst.chat_id, msg.menu, menu_but())
 
 
 async def handle(rqst: schemas.Rqst):

@@ -29,8 +29,6 @@ class TgDriver:
 
 	async def auto_clear_but(self, incm: schemas.IncmCallback):
 		resp = await self.clear_but(incm.chat_id, incm.message_from)
-		if resp == 200:
-			await rdsopr.raw().hdel(self.mem(incm.chat_id), 'last_but_msg')
 		return resp
 
 	async def send_msg(self, chat_id: str, text: str, buttons=None):

@@ -2,7 +2,7 @@ from string import Template
 
 echo = f"Echo:"
 
-menu = f"Добый день это бот коммунны Ru-Mos-327."
+menu = f"Бот коммунны Ru-Mos-327."
 
 but_text_level = f"Уровень коммунны."
 
