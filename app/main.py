@@ -44,6 +44,11 @@ async def sell(sell_post: sch_in.BuyRequest):
 	return await crud_deal_in.deal_in(sell_post)
 
 
+@app.post("/set_goods")
+async def set_goods(goods: sch_in.Goods):
+	return await crud_goods.create_goods(**goods.dict())
+
+
 @app.post(settings.TG_WEBHOOK_MAIN)
 async def telegram_income(request: Request, background_tasks: BackgroundTasks):
 	incm = await incm_proc.parser_incm(request)

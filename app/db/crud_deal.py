@@ -36,11 +36,11 @@ async def get_balance():
 		return sch_db.ReportBalance(ok=False, code=1, msg="Unknown error")
 
 
-async def create_deal(deal_uuid, contractor, amount):
+async def create_deal(deal_uuid, user_id, amount):
 	stmt = text(
-		f"INSERT INTO deals (uuid, contractor, amount, balance) VALUES ("
+		f"INSERT INTO deals (uuid, user_id, amount, balance) VALUES ("
 		f"'{deal_uuid}', "
-		f"'{contractor}', "
+		f"'{user_id}', "
 		f"'{amount}', "
 		f"(SELECT deals.balance FROM deals ORDER BY deals.id DESC LIMIT 1) + {amount})"
 		f"RETURNING deals.id, deals.balance")

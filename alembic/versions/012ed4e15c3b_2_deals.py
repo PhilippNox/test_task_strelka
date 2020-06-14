@@ -37,7 +37,7 @@ def upgrade():
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('uuid', UUID),
         sa.Column('created_at', sa.DateTime, server_default=utcnow()),
-        sa.Column('contractor', sa.Integer, sa.ForeignKey("users.id")),
+        sa.Column('user_id', sa.Integer, sa.ForeignKey("users.id")),
         sa.Column('amount', sa.Numeric),
         sa.Column('balance', sa.Numeric),
     )

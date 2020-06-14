@@ -30,7 +30,7 @@ deals = Table(
 	Column('id', Integer, primary_key=True),
 	Column('uuid', UUID),
 	Column('created_at', DateTime),
-	Column('contractor', Integer, ForeignKey("users.id")),
+	Column('user_id', Integer, ForeignKey("users.id")),
 	Column('amount', Numeric),
 	Column('balance', Numeric),
 )
