@@ -3,6 +3,7 @@ from fastapi.logger import logger
 from app.core.redisbot import rdsopr
 from app.bot_logic.state_holder import state_holder
 import app.db.crud_user as crud_us
+import json
 
 
 def get_sess(load):
@@ -13,10 +14,21 @@ def get_sess(load):
 		return out
 
 
+def get_sess_buy(load):
+	out = None
+	try:
+		load['cart'] = json.loads(load['cart'])
+		out = schemas.SessBuy(**load)
+	finally:
+		return out
+
+
 async def load_session(chat_id) -> schemas.SessBase:
 	load = await rdsopr.raw().hgetall(chat_id)
 	out = None
 	if load:
+		out = get_sess_buy(load)
+	if not out:
 		out = get_sess(load)
 	if out:
 		logger.debug(f"load_session= 📲 - from redis")

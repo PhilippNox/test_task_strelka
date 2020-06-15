@@ -10,8 +10,8 @@ async def exist_user(chat_id: str) -> sch_db.Report:
 		.order_by(user.c.id.desc())
 	out = await database.fetch_one(query=query)
 	if not out:
-		return sch_db.Report(False, 1, "User doesn't exist")
-	return sch_db.Report(True, 0, "User Exist", out['id'])
+		return sch_db.Report(ok=False, code=1, msg="User doesn't exist")
+	return sch_db.Report(ok=True, code=0, msg="User Exist", data=out['id'])
 
 
 async def create_user(chat_id: str):

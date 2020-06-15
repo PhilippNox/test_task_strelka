@@ -56,8 +56,9 @@ async def show_goods(rqst: schemas.Rqst):
 
 
 async def handle_init(rqst: schemas.Rqst):
+	await rdsopr.raw().hdel(rqst.chat_id, 'cart', 'cart_idx')
 	await rdsopr.set_state(rqst.chat_id, state_holder.zero)
-	await tg_driver.send_msg(rqst.chat_id, msg.menu, menu_but())
+	await tg_driver.resend_msg(rqst.chat_id, rqst.sess, msg.menu, menu_but())
 
 
 async def handle(rqst: schemas.Rqst):
